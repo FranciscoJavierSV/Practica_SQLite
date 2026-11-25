@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gestor_tareas_local/main.dart';
+import 'package:practica_sqlite/main.dart';
 
 void main() {
   testWidgets('La pantalla inicial se muestra sin errores', (tester) async {

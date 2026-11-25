@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/tarea.dart';
+import '../data/app_database.dart' hide Tarea;
 
-// Pantalla base SIN persistencia ni operaciones CRUD implementadas.
-// Conserva las indicaciones TODO para orientar tu trabajo.
+// Esta pantalla permite mostrar las tareas y guardar nuevas.
 class TareasPage extends StatefulWidget {
   const TareasPage({super.key});
 
@@ -12,17 +12,53 @@ class TareasPage extends StatefulWidget {
 
 class _TareasPageState extends State<TareasPage> {
   final TextEditingController _tituloController = TextEditingController();
+  final AppDatabase _baseDatos = AppDatabase();
 
   List<Tarea> _tareas = [];
 
   @override
   void initState() {
     super.initState();
-
+    // Cuando se abre la pantalla, se cargan las tareas que quedaron guardadas.
+    _cargarTareas();
   }
 
-  void _agregarTarea() {
-    _pendiente('Implementar registro de tarea');
+  // Busca las tareas en SQLite y las pone en la lista de la pantalla.
+  Future<void> _cargarTareas() async {
+    try {
+      final registros = await _baseDatos.consultarTareas();
+      final tareas = registros
+          .map((registro) => Tarea(
+                id: registro.id,
+                titulo: registro.titulo,
+                completada: registro.completada,
+              ))
+          .toList();
+
+      if (!mounted) return;
+      setState(() => _tareas = tareas);
+    } catch (_) {
+      if (!mounted) return;
+      _pendiente('No se pudieron consultar las tareas');
+    }
+  }
+
+  // Si el título tiene texto, la tarea se guarda y vuelve a aparecer en la lista.
+  Future<void> _agregarTarea() async {
+    final titulo = _tituloController.text.trim();
+
+    if (titulo.isEmpty) {
+      _pendiente('El título no puede estar vacío');
+      return;
+    }
+
+    try {
+      await _baseDatos.agregarTarea(titulo);
+      _tituloController.clear();
+      await _cargarTareas();
+    } catch (_) {
+      _pendiente('No se pudo guardar la tarea');
+    }
   }
 
   void _alternarCompletada(Tarea tarea, bool completada) {
@@ -46,6 +82,7 @@ class _TareasPageState extends State<TareasPage> {
   @override
   void dispose() {
     _tituloController.dispose();
+    _baseDatos.close();
     super.dispose();
   }
 
