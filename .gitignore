@@ -1,0 +1,9 @@
+# Ignorar todo
+/*
+
+# Excepto esto
+!/.gitignore
+!/lib/
+!/test/
+!/README.md
+!/PM_Practica_SQLite.pdf
