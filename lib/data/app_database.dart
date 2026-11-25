@@ -41,4 +41,23 @@ class AppDatabase extends _$AppDatabase {
           ..orderBy([(tabla) => OrderingTerm.asc(tabla.id)]))
         .get();
   }
+
+  // Cambia el título de una tarea buscando su identificador.
+  Future<void> editarTitulo(int id, String nuevoTitulo) {
+    return (update(tareas)..where((fila) => fila.id.equals(id))).write(
+      TareasCompanion(titulo: Value(nuevoTitulo)),
+    );
+  }
+
+  // Actualiza si la tarea está pendiente o completada.
+  Future<void> cambiarEstado(int id, bool completada) {
+    return (update(tareas)..where((fila) => fila.id.equals(id))).write(
+      TareasCompanion(completada: Value(completada)),
+    );
+  }
+
+  // Elimina solo la tarea que tenga ese identificador.
+  Future<void> eliminarTarea(int id) {
+    return (delete(tareas)..where((fila) => fila.id.equals(id))).go();
+  }
 }

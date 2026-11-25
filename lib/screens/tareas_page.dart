@@ -61,16 +61,74 @@ class _TareasPageState extends State<TareasPage> {
     }
   }
 
-  void _alternarCompletada(Tarea tarea, bool completada) {
-    _pendiente('Implementar actualización de tarea');
+  // Actualiza si la tarea está pendiente o completada.
+  Future<void> _alternarCompletada(Tarea tarea, bool completada) async {
+    try {
+      await _baseDatos.cambiarEstado(tarea.id, completada);
+      await _cargarTareas();
+    } catch (_) {
+      _pendiente('No se pudo cambiar el estado');
+    }
   }
 
-  void _editarTarea(Tarea tarea) {
-    _pendiente('Implementar edición de título');
+  // Abre un cuadro para escribir el nuevo título de la tarea.
+  Future<void> _editarTarea(Tarea tarea) async {
+    final controlador = TextEditingController(text: tarea.titulo);
+
+    final nuevoTitulo = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Editar tarea'),
+        content: TextField(
+          controller: controlador,
+          autofocus: true,
+          decoration: const InputDecoration(
+            labelText: 'Título',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(context, controlador.text);
+            },
+            child: const Text('Guardar'),
+          ),
+        ],
+      ),
+    );
+
+    controlador.dispose();
+
+    if (nuevoTitulo == null) return;
+
+    final titulo = nuevoTitulo.trim();
+    if (titulo.isEmpty) {
+      _pendiente('El título no puede estar vacío');
+      return;
+    }
+
+    try {
+      await _baseDatos.editarTitulo(tarea.id, titulo);
+      await _cargarTareas();
+    } catch (_) {
+      _pendiente('No se pudo editar la tarea');
+    }
   }
 
-  void _eliminarTarea(Tarea tarea) {
-    _pendiente('Implementar eliminación de tarea');
+  // Elimina la tarea seleccionada usando su identificador.
+  Future<void> _eliminarTarea(Tarea tarea) async {
+    try {
+      await _baseDatos.eliminarTarea(tarea.id);
+      await _cargarTareas();
+      _pendiente('Tarea eliminada');
+    } catch (_) {
+      _pendiente('No se pudo eliminar la tarea');
+    }
   }
 
   void _pendiente(String mensaje) {
