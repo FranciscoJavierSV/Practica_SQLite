@@ -13,9 +13,19 @@ class Tareas extends Table {
 
 @DriftDatabase(tables: [Tareas])
 class AppDatabase extends _$AppDatabase {
-  // Aquí se abre la base de datos. Drift elige el lugar adecuado para guardarla.
+  // Aquí se abre la base. En el navegador también se indican los archivos necesarios.
   AppDatabase([QueryExecutor? executor])
-      : super(executor ?? driftDatabase(name: 'gestor_tareas'));
+      : super(
+          executor ??
+              driftDatabase(
+                name: 'gestor_tareas',
+                // Estos archivos permiten usar SQLite cuando la app se ejecuta en Chrome.
+                web: DriftWebOptions(
+                  sqlite3Wasm: Uri.parse('sqlite3.wasm'),
+                  driftWorker: Uri.parse('drift_worker.dart.js'),
+                ),
+              ),
+        );
 
   @override
   int get schemaVersion => 1;
